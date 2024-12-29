@@ -1,0 +1,21 @@
+class RenameVariables {
+    public static void main(String[] args) {
+        ShouldNotBeRenamed should_be_renamed;
+
+        should_be_renamed = new should_not_be_renamed();
+
+        if(should_be_renamed.function_should_keep_underscore()) {
+            System.out.println(1+1);
+        } else {
+            // Do nothing
+        }
+    }
+}
+
+class should_not_be_renamed {
+    public boolean function_should_keep_underscore() {
+        boolean another_underscore_variable;
+        another_underscore_variable = true;
+        return another_underscore_variable;
+    }
+}
