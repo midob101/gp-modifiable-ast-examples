@@ -1,5 +1,7 @@
 package org.example;
 
+import config_reader.ConfigReaderException;
+import language_definitions.PredefinedLanguages;
 import lexer.Token;
 import lexer.exceptions.LexerParseException;
 import main.GpModifiableAST;
@@ -17,7 +19,10 @@ import java.io.IOException;
  * Example file on how to refactor variable names from underscore to camelCase
  */
 public class RenameVariableScheme {
-    public static void run(GpModifiableAST parser) throws LexerParseException, IOException, ReplacingUnconnectedNode {
+    public static void run() throws LexerParseException, IOException, ReplacingUnconnectedNode, ConfigReaderException {
+        GpModifiableAST parser = new GpModifiableAST();
+        parser.load(PredefinedLanguages.MINIJAVA);
+
         // At first, we have to create a file instance referencing the file to modify
         File input = new File("minijava_src/RenameVariables.mjava");
         File output = new File("minijava_src/RenameVariables.out.mjava");

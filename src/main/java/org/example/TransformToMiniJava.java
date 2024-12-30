@@ -20,7 +20,9 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * Example file on how to refactor function calls based on external data
+ * Example file on how to transform files written in the extended minijava grammar to match the normal minijava grammar.
+ *
+ * the extended minijava grammar only extends the minijava grammar by adding other comparison operators then "<".
  */
 public class TransformToMiniJava {
     public static void run() throws LexerParseException, IOException, ReplacingUnconnectedNode, AddingConnectedNode, ConfigReaderException {
@@ -35,13 +37,11 @@ public class TransformToMiniJava {
         AbstractSyntaxTreeNode ast = gpModifiableAST.createAst(input);
 
         // As the ast is given, we can now perform searches on it.
-        // For this example, we need to find all nodes which are a function call for the "translate" function.
-        // In reality, this should have a check if it is called on a Translator object, however this will
-        // require a symbol table which is not implemented for minijava yet.
+        // For this transformation, we need to process all comparisons.
         QueryResult comparisons = ast.query(new ProductionSelector("COMPARE_EXPRESSION"));
 
-        // After we found all relevant function call nodes, we can loop over them and replace each
-        // one with their camelCase alternative
+        // After we found all relevant comparison nodes, we can loop over them and check if an update is needed
+        // and perform it if necessary.
         for(AbstractSyntaxTreeNode comparison: comparisons) {
             AbstractSyntaxTreeNode left = comparison.queryImmediateChildren(new AliasSelector("left")).getResult().get(0);
             TokenTreeNode compop = (TokenTreeNode)comparison.queryImmediateChildren(new TokenSelector("compop")).getResult().get(0);
@@ -52,6 +52,7 @@ public class TransformToMiniJava {
                     // Nothing to do, already supported by minijava
                     break;
                 case "<=":
+                    // left <= right is the same as left <= (right+1)
                     compop.replace(new StringTreeNode("<"));
                     right.replace(List.of(
                             new StringTreeNode("("),
@@ -60,11 +61,13 @@ public class TransformToMiniJava {
                     ));
                     break;
                 case ">":
+                    // left > right is the same as right < left
                     compop.replace(new StringTreeNode("<"));
                     left.replace(right.deepClone());
                     right.replace(left.deepClone());
                     break;
                 case ">=":
+                    // left >= right is the same as right < (left+1)
                     compop.replace(new StringTreeNode("<"));
                     left.replace(right.deepClone());
                     right.replace(List.of(
@@ -74,6 +77,7 @@ public class TransformToMiniJava {
                     ));
                     break;
                 case "==":
+                    // left == right is the same as (left < (right+1)) && (right < (left+1))
                     comparison.replace(List.of(
                             new StringTreeNode("("),
                             left.deepClone(),
@@ -94,7 +98,8 @@ public class TransformToMiniJava {
         // The ast has been fully processed, we can save it now back to the input file, finishing the transformation.
         gpModifiableAST.saveToFile(output, ast);
 
-        // At first, we need to prepare the parser and load a specific language.
+        // To verify the syntacitcal correctness of the result, we let the minijava parser parse the output file.
+        // In case the result would not be compatible with minijava, we would receive errors during the parse process.
         GpModifiableAST gpModifiableAST_minijava = new GpModifiableAST();
         gpModifiableAST_minijava.load(PredefinedLanguages.MINIJAVA);
 

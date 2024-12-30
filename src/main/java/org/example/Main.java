@@ -1,9 +1,7 @@
 package org.example;
 
 import config_reader.ConfigReaderException;
-import language_definitions.PredefinedLanguages;
 import lexer.exceptions.LexerParseException;
-import main.GpModifiableAST;
 import syntax_tree.ast.exceptions.AddingConnectedNode;
 import syntax_tree.ast.exceptions.ReplacingUnconnectedNode;
 
@@ -20,6 +18,7 @@ public class Main {
         try {
             RefactorYoda.run();
             TransformToMiniJava.run();
+            RenameVariableScheme.run();
         } catch (ReplacingUnconnectedNode | AddingConnectedNode e) {
             throw new RuntimeException(e);
         }
